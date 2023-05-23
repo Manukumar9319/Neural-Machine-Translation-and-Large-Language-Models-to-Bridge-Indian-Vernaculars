@@ -7,7 +7,8 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, DataCollatorForSe
 
 
 def df_to_dataset(filepath: str) -> DatasetDict:
-    temp_df = pd.read_csv(filepath, error_bad_lines=False)
+    temp_df = pd.read_csv(filepath)
+    temp_df = temp_df[[config.df_src,config.df_trg]]
     temp_df.dropna(inplace=True)
     temp_df = temp_df[:100]
     dataset = Dataset.from_pandas(temp_df)
@@ -67,8 +68,8 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tokenizer = AutoTokenizer.from_pretrained(config.model_checkpoint)
-    tokenizer.src_lang = "hi"
-    tokenizer.tgt_lang = "en"
+    tokenizer.src_lang = config.src_lang
+    tokenizer.tgt_lang = config.trg_lang
     raw_dataset = df_to_dataset(config.DATAPATH)
     tokenized_data = raw_dataset.map(preprocess_function, batched=True)
     model = AutoModelForSeq2SeqLM.from_pretrained(config.model_checkpoint).to(device)
